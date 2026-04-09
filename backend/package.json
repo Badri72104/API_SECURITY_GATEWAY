@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+  "dev": "nodemon app.js",
+  "start": "node app.js",
+  "test": "node --check app.js && node --check routes/dashboard.js && node --check lib/redis.js && node --check middleware/authenticate.js && node --check middleware/ipWhitelist.js && node --check middleware/logger.js && node --check middleware/proxyEngine.js && node --check middleware/rateLimiter.js && node --check models/ApiKey.js && node --check models/RequestLog.js"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.14.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "http-proxy-middleware": "^3.0.5",
+    "ioredis": "^5.10.1",
+    "json2csv": "^6.0.0-alpha.2",
+    "mongoose": "^9.4.1",
+    "pdfkit": "^0.18.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}
