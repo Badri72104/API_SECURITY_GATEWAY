@@ -1,5 +1,6 @@
 import { useEffect, useRef, useReducer } from 'react';
 import { io } from 'socket.io-client';
+import { getGatewayServerUrl } from '../lib/api';
 
 const MAX_LOGS = 500;
 
@@ -24,7 +25,7 @@ function logsReducer(state, action) {
   }
 }
 
-export function useGatewaySocket(serverUrl = 'http://localhost:4000') {
+export function useGatewaySocket(serverUrl = getGatewayServerUrl()) {
   const socketRef = useRef(null);
   const [state, dispatch] = useReducer(logsReducer, {
     logs:   [],
@@ -33,6 +34,9 @@ export function useGatewaySocket(serverUrl = 'http://localhost:4000') {
 
   useEffect(() => {
     socketRef.current = io(serverUrl, {
+      auth: {
+        token: localStorage.getItem('gateway-token'),
+      },
       transports: ['websocket'],
     });
 

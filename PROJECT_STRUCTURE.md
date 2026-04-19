@@ -252,7 +252,7 @@ frontend/
 
 - manages login state
 - stores session data in `localStorage`
-- currently uses mock login behavior rather than a real auth API
+- calls the backend admin login API and stores the returned bearer token
 
 [`frontend/src/context/ThemeContext.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/context/ThemeContext.jsx)
 
@@ -272,7 +272,7 @@ frontend/
 [`frontend/src/pages/LoginPage.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/pages/LoginPage.jsx)
 
 - sign-in screen
-- uses mocked local authentication
+- uses backend-backed admin authentication
 
 [`frontend/src/pages/DashboardPage.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/pages/DashboardPage.jsx)
 
@@ -406,8 +406,8 @@ npm run dev
 
 ### Dashboard usage flow
 
-1. User signs in through the mocked login UI.
-2. Frontend stores auth data in local storage.
+1. User signs in through the dashboard login UI.
+2. Frontend stores the server-issued auth token in local storage.
 3. Protected routes become accessible.
 4. Dashboard fetches analytics.
 5. Logs page listens for live log events.
@@ -436,7 +436,7 @@ x-api-key: <real key>
 
 ## Current Design Notes
 
-- Authentication is mocked on the frontend, not production-grade auth
+- Dashboard authentication is enforced by backend bearer-token middleware
 - MongoDB is required for full backend startup
 - Redis is optional for local development because fallback behavior exists
 - Dark/light mode is class-based through the root `dark` class
@@ -453,4 +453,3 @@ If someone is new to the codebase, start here:
 3. [`frontend/src/App.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/App.jsx)
 4. [`frontend/src/context/GatewayProvider.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/context/GatewayProvider.jsx)
 5. [`frontend/src/components/ApiKeyManager.jsx`](c:/Users/91956/Downloads/secure-api-gateway/secure-api-gateway/frontend/src/components/ApiKeyManager.jsx)
-

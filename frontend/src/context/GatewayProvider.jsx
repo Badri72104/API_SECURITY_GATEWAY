@@ -1,5 +1,7 @@
-import { createContext, useContext, useEffect, useRef, useReducer } from 'react';
+import { createContext, useContext, useEffect, useRef, useReducer, useState } from 'react';
 import { io } from 'socket.io-client';
+import { api, getGatewayServerUrl } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 const GatewayContext = createContext();
 
@@ -19,6 +21,8 @@ function logsReducer(state, action) {
       };
     case 'CLEAR_LOGS':
       return { ...state, logs: [] };
+    case 'SET_LOGS':
+      return { ...state, logs: action.payload.slice(0, MAX_LOGS) };
     case 'CLEAR_ALERTS':
       return { ...state, alerts: [] };
     default:
@@ -26,16 +30,35 @@ function logsReducer(state, action) {
   }
 }
 
-export function GatewayProvider({ children, serverUrl = 'http://localhost:4000' }) {
+export function GatewayProvider({ children, serverUrl = getGatewayServerUrl() }) {
   const socketRef = useRef(null);
+  const { isAuthenticated } = useAuth();
   const [state, dispatch] = useReducer(logsReducer, {
     logs: [],
     alerts: [],
   });
-  const [isConnected, setIsConnected] = useReducer((state) => !state, false);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem('gateway-token');
+    if (!isAuthenticated || !token) {
+      socketRef.current?.disconnect();
+      socketRef.current = null;
+      return undefined;
+    }
+
+    api.get('/api/logs?limit=500')
+      .then(({ data }) => {
+        dispatch({ type: 'SET_LOGS', payload: data });
+      })
+      .catch((err) => {
+        console.error('[logs] failed to load:', err.response?.data?.error || err.message);
+      });
+
     socketRef.current = io(serverUrl, {
+      auth: {
+        token,
+      },
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -45,7 +68,7 @@ export function GatewayProvider({ children, serverUrl = 'http://localhost:4000' 
 
     socketRef.current.on('connect', () => {
       console.log('[socket] connected');
-      setIsConnected();
+      setIsConnected(true);
     });
 
     socketRef.current.on('request_log', (log) => {
@@ -58,13 +81,13 @@ export function GatewayProvider({ children, serverUrl = 'http://localhost:4000' 
 
     socketRef.current.on('disconnect', () => {
       console.log('[socket] disconnected');
-      setIsConnected();
+      setIsConnected(false);
     });
 
     return () => {
       socketRef.current?.disconnect();
     };
-  }, [serverUrl]);
+  }, [isAuthenticated, serverUrl]);
 
   const value = { ...state, dispatch, isConnected };
 

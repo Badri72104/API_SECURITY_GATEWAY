@@ -9,7 +9,7 @@
   "scripts": {
   "dev": "nodemon app.js",
   "start": "node app.js",
-  "test": "node --check app.js && node --check routes/dashboard.js && node --check lib/redis.js && node --check middleware/authenticate.js && node --check middleware/ipWhitelist.js && node --check middleware/logger.js && node --check middleware/proxyEngine.js && node --check middleware/rateLimiter.js && node --check models/ApiKey.js && node --check models/RequestLog.js"
+  "test": "node --check app.js && node --check routes/auth.js && node --check routes/dashboard.js && node --check lib/redis.js && node --check middleware/adminAuth.js && node --check middleware/authenticate.js && node --check middleware/ipWhitelist.js && node --check middleware/logger.js && node --check middleware/proxyEngine.js && node --check middleware/rateLimiter.js && node --check models/ApiKey.js && node --check models/RequestLog.js"
 },
   "keywords": [],
   "author": "",

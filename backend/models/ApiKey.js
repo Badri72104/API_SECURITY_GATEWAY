@@ -3,8 +3,8 @@ const bcrypt   = require('bcrypt');
 
 const ApiKeySchema = new mongoose.Schema({
   name:        { type: String, required: true },
-  keyHash:     { type: String, required: true },
-  prefix:      { type: String, required: true },
+  keyHash:     { type: String, required: true, select: false },
+  prefix:      { type: String, required: true, unique: true, index: true },
   targetUrl:   { type: String, required: true },
   rateLimit:   { type: Number, default: 100 },
   isActive:    { type: Boolean, default: true },
@@ -15,6 +15,10 @@ const ApiKeySchema = new mongoose.Schema({
 });
 
 ApiKeySchema.pre('save', async function () {
+  if (!this.isModified('keyHash')) {
+    return;
+  }
+
   this.keyHash = await bcrypt.hash(this.keyHash, 12);
 });
 

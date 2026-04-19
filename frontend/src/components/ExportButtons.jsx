@@ -1,53 +1,33 @@
 import toast from 'react-hot-toast';
+import { api } from '../lib/api';
 
 export default function ExportButtons() {
-  const downloadCSV = async () => {
+  const downloadFile = async (url, filename, type) => {
     try {
-      const res  = await fetch('/api/export/csv');
-      const blob = await res.blob();
-      const url  = window.URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'gateway-logs.csv';
+      const res = await api.get(url, { responseType: 'blob' });
+      const objectUrl = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
       a.click();
-      toast.success('CSV downloaded');
+      window.URL.revokeObjectURL(objectUrl);
+      toast.success(`${type} downloaded`);
     } catch {
-      toast.error('Failed to download CSV');
-    }
-  };
-
-  const downloadPDF = async () => {
-    try {
-      const res  = await fetch('/api/export/pdf');
-      const blob = await res.blob();
-      const url  = window.URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'gateway-report.pdf';
-      a.click();
-      toast.success('PDF downloaded');
-    } catch {
-      toast.error('Failed to download PDF');
+      toast.error(`Failed to download ${type}`);
     }
   };
 
   return (
     <div className="flex gap-3">
       <button
-        onClick={downloadCSV}
-        className="flex items-center gap-2 border border-gray-300 
-          dark:border-gray-700 rounded-lg px-4 py-2 text-sm 
-          text-gray-700 dark:text-gray-300 hover:bg-gray-100 
-          dark:hover:bg-gray-800"
+        onClick={() => downloadFile('/api/export/csv', 'gateway-logs.csv', 'CSV')}
+        className="flex items-center gap-2 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         Export CSV
       </button>
       <button
-        onClick={downloadPDF}
-        className="flex items-center gap-2 border border-gray-300 
-          dark:border-gray-700 rounded-lg px-4 py-2 text-sm 
-          text-gray-700 dark:text-gray-300 hover:bg-gray-100 
-          dark:hover:bg-gray-800"
+        onClick={() => downloadFile('/api/export/pdf', 'gateway-report.pdf', 'PDF')}
+        className="flex items-center gap-2 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         Export PDF
       </button>

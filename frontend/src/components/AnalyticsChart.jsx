@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '../lib/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,9 +22,9 @@ export default function AnalyticsChart() {
   const [analytics, setAnalytics] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/analytics').then(({ data }) => setAnalytics(data));
+    api.get('/api/analytics').then(({ data }) => setAnalytics(data));
     const interval = setInterval(() => {
-      axios.get('/api/analytics').then(({ data }) => setAnalytics(data));
+      api.get('/api/analytics').then(({ data }) => setAnalytics(data));
     }, 30000);
     return () => clearInterval(interval);
   }, []);

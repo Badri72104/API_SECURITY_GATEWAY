@@ -6,136 +6,69 @@ A full-stack API gateway and dashboard for managing API keys, proxying upstream 
 
 - API key creation and management
 - Authenticated proxy routing through `/proxy/*`
+- Dashboard login backed by server-side admin credentials
 - Request logging and analytics
 - IP whitelist checks
-- Rate limiting support
+- Redis-backed rate limiting with MongoDB fallback for key lookup
 - CSV and PDF export
-- Live dashboard updates with Socket.IO
+- Live dashboard updates with authenticated Socket.IO
 - Dark and light mode UI
 
 ## Tech Stack
 
-### Backend
+- Backend: Node.js, Express, MongoDB with Mongoose, Redis with ioredis, Socket.IO
+- Frontend: React, Vite, Tailwind CSS, Chart.js, Axios, React Router
 
-- Node.js
-- Express
-- MongoDB with Mongoose
-- Redis with ioredis
-- Socket.IO
-- http-proxy-middleware
+## Environment
 
-### Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- Chart.js
-- Axios
-- React Router
-
-## Project Structure
-
-```text
-secure-api-gateway/
-├─ backend/
-├─ frontend/
-├─ PROJECT_STRUCTURE.md
-└─ README.md
-```
-
-For a detailed breakdown of every major backend and frontend file, see:
-
-- [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
-
-## Local Setup
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Badri72104/API_SECURITY_GATEWAY.git
-cd API_SECURITY_GATEWAY
-```
-
-### 2. Configure the backend environment
-
-Create:
-
-```text
-backend/.env
-```
-
-Expected variables:
+Create `backend/.env` from `backend/.env.example` and set real values:
 
 ```env
+NODE_ENV=production
 PORT=4000
 MONGO_URI=your_mongodb_connection_string
 REDIS_HOST=localhost
 REDIS_PORT=6379
+CORS_ORIGIN=https://your-dashboard.example.com
 PROXY_TIMEOUT_MS=5000
-NODE_ENV=development
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=use-a-long-random-password
+ADMIN_EMAIL=admin@example.com
+ADMIN_SESSION_SECRET=use-a-long-random-secret
+ADMIN_SESSION_TTL_MS=86400000
 ```
 
-Notes:
+For the frontend, create `frontend/.env` from `frontend/.env.example` when the API is not served from the same origin:
 
-- MongoDB is required for backend startup
-- Redis is recommended, but the app includes fallback behavior if Redis is unavailable
+```env
+VITE_API_BASE_URL=https://your-api.example.com
+VITE_GATEWAY_SERVER_URL=https://your-api.example.com
+```
 
-### 3. Install dependencies
+## Local Setup
 
 Backend:
 
 ```bash
 cd backend
 npm install
+npm start
 ```
 
 Frontend:
 
 ```bash
-cd ../frontend
-npm install
-```
-
-## Running the Project
-
-### Start the backend
-
-```bash
-cd backend
-node app.js
-```
-
-Expected output:
-
-```text
-[db] MongoDB connected
-[server] Running on http://localhost:4000
-```
-
-### Start the frontend
-
-```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-Open:
+Default local URLs:
 
 - Frontend: `http://localhost:5173`
 - Backend health: `http://localhost:4000/health`
 
-## How It Works
-
-### Dashboard flow
-
-1. Sign in through the dashboard UI
-2. Create an API key
-3. Send requests through the gateway using that key
-4. Watch logs and analytics update in the dashboard
-
-### Gateway flow
-
-The gateway request path is:
+## Gateway Flow
 
 ```text
 Client -> /proxy/* -> authenticate -> whitelist -> rate limit -> proxy upstream
@@ -147,17 +80,11 @@ Example:
 curl.exe -H "x-api-key: YOUR_REAL_KEY" http://localhost:4000/proxy/posts/1
 ```
 
-## Main Dashboard Pages
-
-- Login
-- Dashboard
-- Logs
-- API Keys
-- Settings
-
-## Available Backend API Routes
+## Backend Routes
 
 - `GET /health`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 - `POST /api/keys`
 - `GET /api/keys`
 - `PATCH /api/keys/:id/whitelist`
@@ -166,9 +93,11 @@ curl.exe -H "x-api-key: YOUR_REAL_KEY" http://localhost:4000/proxy/posts/1
 - `GET /api/export/csv`
 - `GET /api/export/pdf`
 
-## Development Scripts
+All `/api/*` dashboard routes except `/api/auth/login` require a bearer token returned by login.
 
-### Backend
+## Scripts
+
+Backend:
 
 ```bash
 npm run dev
@@ -176,7 +105,7 @@ npm start
 npm test
 ```
 
-### Frontend
+Frontend:
 
 ```bash
 npm run dev
@@ -185,17 +114,9 @@ npm run lint
 npm run preview
 ```
 
-## Notes
+## Production Notes
 
-- Authentication is currently mocked in the frontend
-- MongoDB Atlas works for local development and deployment
-- Redis improves caching and rate limiting behavior, but is not strictly required for local testing
-- Sensitive files like `.env` and generated folders like `node_modules` and `dist` are ignored in Git
-
-## Recommended Next Steps
-
-- add production environment-based API URLs for deployment
-- deploy backend to Render or Railway
-- deploy frontend to Vercel or Netlify
-- replace mocked login with real authentication
-
+- Set `NODE_ENV=production` and `CORS_ORIGIN` to the exact dashboard origin.
+- Use strong, unique values for `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET`.
+- Keep `.env` files out of Git; only `.env.example` files should be committed.
+- Rotate the MongoDB credential that was previously present in local configuration before deployment.

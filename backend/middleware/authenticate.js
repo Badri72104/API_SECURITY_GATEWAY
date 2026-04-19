@@ -18,7 +18,7 @@ module.exports = async function authenticate(req, res, next) {
 
     // 2. Cache miss — check MongoDB (include inactive keys too)
     if (!keyData) {
-      doc = await ApiKey.findOne({ prefix });
+      doc = await ApiKey.findOne({ prefix }).select('+keyHash');
       if (!doc) {
         return res.status(401).json({ error: 'Invalid API key' });
       }

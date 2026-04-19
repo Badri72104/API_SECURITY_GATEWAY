@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { api } from '../lib/api';
 
 export default function ApiKeyManager() {
-  const [keys, setKeys]       = useState([]);
+  const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm]       = useState({
-    name:       '',
-    targetUrl:  '',
-    rateLimit:  100,
+  const [form, setForm] = useState({
+    name: '',
+    targetUrl: '',
+    rateLimit: 100,
     usageLimit: 10000,
   });
 
   const fetchKeys = async () => {
-    const { data } = await axios.get('/api/keys');
+    const { data } = await api.get('/api/keys');
     setKeys(data);
   };
 
@@ -22,7 +22,7 @@ export default function ApiKeyManager() {
 
     const loadKeys = async () => {
       try {
-        const { data } = await axios.get('/api/keys');
+        const { data } = await api.get('/api/keys');
         if (isMounted) {
           setKeys(data);
         }
@@ -45,21 +45,23 @@ export default function ApiKeyManager() {
       toast.error('Name and Target URL are required');
       return;
     }
+
     setLoading(true);
     try {
-      const { data } = await axios.post('/api/keys', form);
-      toast.success('Key created! Copy it now — it will not be shown again.');
+      const { data } = await api.post('/api/keys', form);
+      toast.success('Key created. Copy it now; it will not be shown again.');
       prompt('Copy your API key:', data.key);
       await fetchKeys();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create key');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const toggleKey = async (id, current) => {
     try {
-      await axios.patch(`/api/keys/${id}/toggle`, { isActive: !current });
+      await api.patch(`/api/keys/${id}/toggle`, { isActive: !current });
       await fetchKeys();
       toast.success(`Key ${!current ? 'enabled' : 'disabled'}`);
     } catch {
@@ -69,8 +71,7 @@ export default function ApiKeyManager() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-900 border border-gray-200
-        dark:border-gray-800 rounded-xl p-6">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
         <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Create API Key
         </h2>
@@ -79,51 +80,43 @@ export default function ApiKeyManager() {
             type="text"
             placeholder="Key name"
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            className="border border-gray-300 dark:border-gray-700
-              rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800
-              text-gray-900 dark:text-white w-full"
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-full"
           />
           <input
-            type="text"
+            type="url"
             placeholder="Target URL (e.g. https://api.example.com)"
             value={form.targetUrl}
-            onChange={e => setForm({ ...form, targetUrl: e.target.value })}
-            className="border border-gray-300 dark:border-gray-700
-              rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800
-              text-gray-900 dark:text-white w-full"
+            onChange={(e) => setForm({ ...form, targetUrl: e.target.value })}
+            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-full"
           />
           <input
             type="number"
+            min="1"
             placeholder="Rate limit (req/min)"
             value={form.rateLimit}
-            onChange={e => setForm({ ...form, rateLimit: parseInt(e.target.value) })}
-            className="border border-gray-300 dark:border-gray-700
-              rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800
-              text-gray-900 dark:text-white w-full"
+            onChange={(e) => setForm({ ...form, rateLimit: Number(e.target.value) })}
+            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-full"
           />
           <input
             type="number"
+            min="1"
             placeholder="Usage limit (total requests)"
             value={form.usageLimit}
-            onChange={e => setForm({ ...form, usageLimit: parseInt(e.target.value) })}
-            className="border border-gray-300 dark:border-gray-700
-              rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800
-              text-gray-900 dark:text-white w-full"
+            onChange={(e) => setForm({ ...form, usageLimit: Number(e.target.value) })}
+            className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-full"
           />
         </div>
         <button
           onClick={createKey}
           disabled={loading}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white
-            text-sm font-medium px-6 py-2 rounded-lg disabled:opacity-50"
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2 rounded-lg disabled:opacity-50"
         >
           {loading ? 'Creating...' : 'Create Key'}
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200
-        dark:border-gray-800 rounded-xl p-6">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
         <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Active Keys
         </h2>
@@ -131,25 +124,23 @@ export default function ApiKeyManager() {
           <p className="text-gray-500 text-sm">No keys created yet.</p>
         )}
         <div className="space-y-3">
-          {keys.map(key => (
+          {keys.map((key) => (
             <div
               key={key._id}
-              className="flex items-center justify-between p-4
-                border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg gap-4"
             >
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {key.name}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {key.targetUrl} · {key.rateLimit} req/min ·
-                  {key.usageCount}/{key.usageLimit} used
+                  {key.targetUrl} / {key.rateLimit} req/min / {key.usageCount}/{key.usageLimit} used
                 </p>
                 <p className="text-xs text-gray-400 mt-1 font-mono">
                   prefix: {key.prefix}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   key.isActive
                     ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
@@ -159,9 +150,7 @@ export default function ApiKeyManager() {
                 </span>
                 <button
                   onClick={() => toggleKey(key._id, key.isActive)}
-                  className="text-xs border border-gray-300 dark:border-gray-600
-                    rounded px-3 py-1 text-gray-600 dark:text-gray-300
-                    hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="text-xs border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   {key.isActive ? 'Disable' : 'Enable'}
                 </button>

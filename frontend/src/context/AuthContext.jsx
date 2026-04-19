@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { api } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -26,26 +27,21 @@ export function AuthProvider({ children }) {
   const [initialSession] = useState(getStoredSession);
   const [user, setUser] = useState(initialSession.user);
   const [isAuthenticated, setIsAuthenticated] = useState(initialSession.isAuthenticated);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const login = (username, password) => {
-    // Mock authentication - replace with real API call later
-    if (username.trim() && password.trim()) {
-      const userData = {
-        id: '1',
-        username,
-        email: `${username}@gateway.local`,
-      };
-      
-      const token = `token_${Date.now()}`;
-      localStorage.setItem('gateway-token', token);
-      localStorage.setItem('gateway-user', JSON.stringify(userData));
-      
-      setUser(userData);
+  const login = async (username, password) => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.post('/api/auth/login', { username, password });
+      localStorage.setItem('gateway-token', data.token);
+      localStorage.setItem('gateway-user', JSON.stringify(data.user));
+
+      setUser(data.user);
       setIsAuthenticated(true);
       return true;
+    } finally {
+      setIsLoading(false);
     }
-    return false;
   };
 
   const logout = () => {

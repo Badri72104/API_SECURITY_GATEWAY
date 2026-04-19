@@ -1,9 +1,11 @@
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { getGatewayServerUrl } from '../lib/api';
 
 export function SettingsPage() {
   const { theme, toggle } = useTheme();
   const { user } = useAuth();
+  const serverUrl = getGatewayServerUrl();
 
   return (
     <div className="space-y-6">
@@ -65,7 +67,7 @@ export function SettingsPage() {
             </label>
             <input
               type="text"
-              value="http://localhost:4000"
+              value={serverUrl}
               disabled
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white font-mono text-sm"
             />
